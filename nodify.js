@@ -93,8 +93,13 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 		finish(timestamp, macaddr, iptoapp.get(ipaddr));
 	} else {
 		dns.reverse(ipaddr, function(err, hostnames) {
-			if (!hostnames) return;
-			var app = gm(hostnames[0]);
+			var hostname = '';
+			if (err || !hostnames) {
+				hostname = ipaddr;
+			} else {
+				hostname = hostnames[0];
+			}
+			var app = gm(hostname);
 			iptoapp.set(ipaddr, app);
 			finish(timestamp, macaddr, app);
 		});
