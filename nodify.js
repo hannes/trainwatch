@@ -7,7 +7,7 @@ var lastobs = lru({max: 1000});
 var lastint = lru({max: 1000});
 var iptoapp = lru({max: 1000});
 
-// awk 'OFS="\t"{count[$4]++}END{for(j in count) if (count[j] > 2) print j,count[j]}'  | sort -n -k 2 -r
+// awk -F "\t" 'OFS="\t"{count[$4]++}END{for(j in count) if (count[j] > 2) print j,count[j]}'  | sort -t $'\t' -n -k 2 -r
 // {dd <- read.table("capture.log", sep="\t", quote=NULL, header=F, stringsAsFactors=F, col.names=c("time","dir","mac","remoteip","port","domain")); dd$timep <- strptime(dd$time, format="%b %d, %Y %H:%M:%OS"); hist(dd$timep, "hours")}
 
 var mappings = {
@@ -20,13 +20,14 @@ var mappings = {
 	'Dropbox'     : /^.*\.dropbox\.com$/,
 	'Netflix'     : /^.*\.nflxvideo\.net$/,
 	'Spotify'     : /^.*\.spotify\.com$/,
-	'iCloud'      : /^.*\.(apple|icloud|icloud-content|digitalhub)\.com$/,
+	'iCloud'      : /^(.*\.(apple|icloud|icloud-content|digitalhub)\.com|^17\..*$)$/, // class A for Apple
+	'Twitter'     : /^199\.96\.57\..*$/,
 	'Grepolis'    : /^.*\.gp\.innogames\.net$/,
 	'Whatsapp'    : /^173\.192\.222\..*-static\.reverse\.softlayer\.com$/,
 	'BullChat'    : /^(rs200435\.rs\.hosteurope\.de|rs20043\.rs\.hosteurope\.de|lvps178-77-100-159\.dedicated\.hosteurope\.de)$/,
 	'NPO'         : /^.*\.omroep\.nl$/,
 	'NU.nl'       : /^62-69-.*\.ptr\.as24646\.net$/,
-	'__ignore'    : /^(.*\.ztomy.com|cdn-87-248-221-254\.par\.llnw\.net|.*\.nr-data\.net|.*\.adform\.net|.*\.avast\.com|.*\.akamaitechnologies\.com|.*\.amazonaws\.com|.*\.1e100\.net|cache\.google\.com|.*\.cloudfront\.net)$/,
+	'__ignore'    : /^(74\.217\.75\.7|93\.184\.220\.20|2\.(21|19)\..*|.*\.ztomy.com|cdn-87-248-221-254\.par\.llnw\.net|.*\.nr-data\.net|.*\.adform\.net|.*\.avast\.com|.*\.akamaitechnologies\.com|.*\.amazonaws\.com|.*\.1e100\.net|cache\.google\.com|.*\.cloudfront\.net)$/,
 };
 
 function gm(tld) {
