@@ -20,6 +20,8 @@ var mappings = {
 	'Dropbox'     : /^.*\.dropbox\.com$/,
 	'Netflix'     : /^.*\.nflxvideo\.net$/,
 	'Spotify'     : /^.*\.spotify\.com$/,
+	'Buienalarm'  : /^188\.226\.199\.6$/,
+	'Telegram'    : /^149\.154\.167\.91$/,
 	'iCloud'      : /^(.*\.(apple|icloud|icloud-content|digitalhub)\.com|^17\..*$)$/, // class A for Apple
 	'Twitter'     : /^199\.96\.57\..*$/,
 	'Grepolis'    : /^.*\.gp\.innogames\.net$/,
@@ -27,7 +29,7 @@ var mappings = {
 	'BullChat'    : /^(rs200435\.rs\.hosteurope\.de|rs20043\.rs\.hosteurope\.de|lvps178-77-100-159\.dedicated\.hosteurope\.de)$/,
 	'NPO'         : /^.*\.omroep\.nl$/,
 	'NU.nl'       : /^62-69-.*\.ptr\.as24646\.net$/,
-	'__ignore'    : /^(74\.217\.75\.7|93\.184\.220\.20|2\.(21|19)\..*|.*\.ztomy.com|cdn-87-248-221-254\.par\.llnw\.net|.*\.nr-data\.net|.*\.adform\.net|.*\.avast\.com|.*\.akamaitechnologies\.com|.*\.amazonaws\.com|.*\.1e100\.net|cache\.google\.com|.*\.cloudfront\.net)$/,
+	'__ignore'    : /^(192\.44\.68\.3|74\.217\.75\.7|93\.184\.220\.20|2\.(21|19)\..*|.*\.ztomy.com|cdn-87-248-221-254\.par\.llnw\.net|.*\.nr-data\.net|.*\.adform\.net|.*\.avast\.com|.*\.akamaitechnologies\.com|.*\.amazonaws\.com|.*\.1e100\.net|cache\.google\.com|.*\.cloudfront\.net)$/,
 };
 
 function gm(tld) {
