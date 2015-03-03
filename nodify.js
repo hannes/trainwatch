@@ -39,7 +39,7 @@ function gm(tld) {
    			return app;
    		}
    	}
- 	return tld;
+ 	return '';
 }
 
 var macvendors = {};
@@ -70,13 +70,13 @@ mvss.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 	replace('AmoiElec', 'AMOI');
 }));
 
-function finish(timestamp, macaddr, app) {
+function finish(timestamp, macaddr, ip, dns, app) {
 	if (app == '__ignore') return;
 	var intkey = macaddr + '_' + app;
 	if (lastint.has(intkey)) return;
 	lastint.set(intkey, true);
 
-	console.log(timestamp + '\t' + macaddr.substring(0,4) + '...' + macaddr.substring(13) +'\t'+ gv(macaddr) +'\t' + app);
+	console.log(timestamp + '\t' + macaddr +'\t'+ gv(macaddr) +'\t' + ip + '\t' + dns + '\t' + app);
 }
 
 mvss.on('end', function() { // only start reading stdin once the mappings have been loaded
@@ -93,18 +93,20 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 	lastobs.set(obskey, true);
 
 	if (iptoapp.has(ipaddr)) {
-		finish(timestamp, macaddr, iptoapp.get(ipaddr));
+		var c = iptoapp.get(ipaddr)
+		finish(timestamp, macaddr, ipaddr, c.hostname, c.app);
 	} else {
 		dns.reverse(ipaddr, function(err, hostnames) {
 			var hostname = '';
-			if (err || !hostnames) {
-				hostname = ipaddr;
-			} else {
+			var app = '';
+			if (!err && hostnames != undefined) {
 				hostname = hostnames[0];
+				app = gm(hostname);
+			} else {
+				app = gm(ipaddr);
 			}
-			var app = gm(hostname);
-			iptoapp.set(ipaddr, app);
-			finish(timestamp, macaddr, app);
+			iptoapp.set(ipaddr, {hostname:hostname, app:app});
+			finish(timestamp, macaddr, ipaddr, hostname, app);
 		});
 	}
 }));
