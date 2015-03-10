@@ -1,29 +1,100 @@
+<!DOCTYPE html>
 <html>
-    <head>
-    <!-- 
-     * Author:      Gianluca Guarini
-     * Contact:     gianluca.guarini@gmail.com
-     * Website:     http://www.gianlucaguarini.com/
-     * Twitter:     @gianlucaguarini
-    -->
-        <title>Push notification server</title>
-    </head>
+<head>
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trainwatch</title>
+
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+
+</head>
     <body>
-        <time></time>
-        <div id="container">Try to change your xml data to update this content</div>
-    <script src="socket.io/socket.io.js"></script>
-    <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
-    <script>
-    // creating a new websocket
+    <div id="container">
+
+
+<div class="row">
+<div class="col-md-3" id="boxes-0"></div>
+<div class="col-md-3" id="boxes-1"></div>
+<div class="col-md-3" id="boxes-2"></div>
+<div class="col-md-3" id="boxes-3"></div>
+
+</div>
+
+        </div>
+
+     <script src="socket.io/socket.io.js"></script>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script src="http://timeago.yarp.com/jquery.timeago.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/2.0.0/handlebars.min.js"></script>
+
+
+
+<!--<script src="https://raw.githubusercontent.com/rsms/js-lru/master/lru.js"></script>-->
+
+
+<script id="box-template" type="text/x-handlebars-template">
+    <div class="box" id="box-{{macid}}">
+        <div class="box-header">
+            <span class="box-macaddr">{{macaddr}}</span>
+            <span class="box-vendor">{{vendor}}</span>
+            <span class="box-count">1</span>
+        </div>
+        <ul class="box-list">
+        </ul>
+    </div>
+</script>
+
+
+<script id="host-template" type="text/x-handlebars-template">
+    <li id="host-{{macid}}-{{ipid}}" class="host" data-ip="{{ipaddr}}">
+        <span class="host-hostname">{{ipaddr}}</span>
+        <span class="host-app"></span>
+    </li>
+</script>
+
+<script>
+    var boxtpl  = Handlebars.compile($("#box-template").html());
+    var hosttpl = Handlebars.compile($("#host-template").html());
+    var col = 0;
+
+    var stations = {};
     var socket = io.connect('http://localhost:8000');
-    // on every message recived we print the new datas inside the #container div
     socket.on('notification', function (data) {
-        // convert the json string into a valid javascript object
-        var _data = JSON.parse(data);
-        console.log(data);
-        $('#container').html(_data.test.sample);
-        $('time').html('Last Update:' + _data.time);
+        if (data.type == 'packet') {
+            data.macid = data.macaddr.replace(/:/g,'-');
+            data.ipid  = data.ipaddr.replace(/\./g,'-');
+            if (!stations[data.macaddr]) {
+                stations[data.macaddr] = {
+                    macaddr : data.macaddr,
+                    macid : data.macid,
+                    vendor  : data.vendor,
+                    lastseen: data.timestamp
+                };
+                $('#boxes-' + col).prepend((boxtpl(stations[data.macaddr])));
+            }
+            var cntele = $('#box-' + data.macid + ' span.box-count');
+            cntele.text(parseInt(cntele.text())+1);
+            if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
+                $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
+            }
+            col = (col + 1) % 4;
+        }
+        if (data.type == 'resolve') {
+            console.log(data);
+            if (data.hostname != '') {
+                $("li[data-ip='"+data.ip+"'] .host-hostname").text(data.hostname);
+            }
+            if (data.app != '') {
+                $("li[data-ip='"+data.ip+"'] .host-app").text(data.app);
+            }
+
+        }
+        if (data.type == 'history') {
+            
+        }
     });
-    </script>
+</script>
     </body>
 </html>
