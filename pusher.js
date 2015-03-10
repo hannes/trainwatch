@@ -58,7 +58,7 @@ var ipresolv = lru({max: 1000});
 
 var mappings = {
   'Instagram'   : /^instagram\..*\.facebook\.com$|^instagram-shv.*\.fbcdn\.net$/,
-  'Facebook Messenger' : /^mqtt-shv-.*\.facebook\.com$/,
+  'Messenger'   : /^mqtt-shv-.*\.facebook\.com$/,
   'Facebook'    : /^.*\.(facebook\.com|fbcdn\.net)$/,
   'Candy Crush' : /^mobilecrush\.king\.com$/,
   'Outlook.com' : /^.*\.(hotmail.com|.*\.mail\.live\.com|a-msedge\.net)$/,

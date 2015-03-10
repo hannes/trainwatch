@@ -75,9 +75,12 @@
                 $('#boxes-' + col).prepend((boxtpl(stations[data.macaddr])));
             }
             var cntele = $('#box-' + data.macid + ' span.box-count');
+            $('#box-' + data.macid).fadeTo(100, 0.1).fadeTo(200, 1.0);
             cntele.text(parseInt(cntele.text())+1);
             if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
                 $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
+            } else {
+                $('#host-' + data.macid + '-' + data.ipid).fadeTo(100, 0.1).fadeTo(200, 1.0);
             }
             col = (col + 1) % 4;
         }
