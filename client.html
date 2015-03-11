@@ -8,6 +8,13 @@
  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 
+<style>
+body {
+    margin: 10px;
+    font-size: 10pt;
+}
+</style>
+
 </head>
     <body>
     <div id="container">
@@ -39,7 +46,7 @@
         <div class="box-header panel-heading">
             <span class="box-vendor">{{vendor}}</span>
             <span class="box-macaddr">{{macaddr}}</span>
-            <span class="box-count badge">1</span>
+            <!--<span class="box-count badge">1</span>-->
         </div>
         <ul class="box-list list-group">
         </ul>
@@ -73,16 +80,16 @@
                     lastseen: data.timestamp
                 };
                 $('#boxes-' + col).prepend((boxtpl(stations[data.macaddr])));
+                col = (col + 1) % 4;
             }
-            var cntele = $('#box-' + data.macid + ' span.box-count');
-            $('#box-' + data.macid).fadeTo(100, 0.1).fadeTo(200, 1.0);
-            cntele.text(parseInt(cntele.text())+1);
+          //  var cntele = $('#box-' + data.macid + ' span.box-count');
+           // $('#box-' + data.macid).fadeTo(100, 0.1).fadeTo(200, 1.0);
+            //cntele.text(parseInt(cntele.text())+1);
             if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
                 $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
             } else {
-                $('#host-' + data.macid + '-' + data.ipid).fadeTo(100, 0.1).fadeTo(200, 1.0);
+               // $('#host-' + data.macid + '-' + data.ipid).fadeTo(100, 0.1).fadeTo(200, 1.0);
             }
-            col = (col + 1) % 4;
         }
         if (data.type == 'resolve') {
             if (data.hostname != '') {
