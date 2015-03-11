@@ -1,23 +1,16 @@
-var app = require('http').createServer(handler),
+var app = require('http').createServer(function (req, res) {
+  file.serve(req, res);
+}),
   io = require('socket.io').listen(app),
   fs = require('fs'),
   es =  require('event-stream'),
   lru = require("lru-cache"), 
-  dns = require('dns');
+  dns = require('dns'), 
+  static = require('node-static');
+
+var file = new static.Server('./public');
 
 app.listen(8000);
-
-// on server started we can load our client.html page
-function handler(req, res) {
-  fs.readFile(__dirname + '/client.html', function(err, data) {
-    if (err) {
-      console.log(err);
-      return;
-    }
-    res.writeHead(200);
-    res.end(data);
-  });
-}
 
 // blast that stuff to web sockets
 var sockets = [];
@@ -32,18 +25,7 @@ mvss.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
   var fields = data.split('\t');
   if (fields.length < 2) return;
   // make vendor names slightly prettier
-  macvendors[fields[0]] = fields[1].split("#")[0].trim().
-  replace('SamsungE', 'Samsung').
-  replace('HuaweiTe', 'Huawei').
-  replace('LgElectr', 'LG').
-  replace('SonyMobi', 'Sony').
-  replace('HonHaiPr', 'Foxconn').
-  replace('Htc'     , 'HTC').
-  replace('LiteonTe', 'LiteOn').
-  replace('IntelCor', 'Intel').
-  replace('MurataMa', 'Murata').
-  replace('AmoiElec', 'AMOI').
-  replace('Microsof', 'Microsoft');
+  macvendors[fields[0]] = fields[1].split("#")[0].trim();
 }));
 
 function gv(mac) {

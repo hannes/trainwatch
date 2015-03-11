@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trainwatch</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <style>
+    body {
+        margin: 10px;
+        font-size: 10pt;
+    }
+    .box-vendor {
+        max-width: 70px;
+        max-height: 20px;
+    }
+    </style>
+</head>
+
+<body>
+<div id="container">
+    <div class="row">
+        <div class="col-md-3" id="boxes-0"></div>
+        <div class="col-md-3" id="boxes-1"></div>
+        <div class="col-md-3" id="boxes-2"></div>
+        <div class="col-md-3" id="boxes-3"></div>
+    </div>
+ </div>
+
+<script src="socket.io/socket.io.js"></script>
+<script src="jquery.min.js"></script>
+<script src="bootstrap.min.js"></script>
+<script src="handlebars.min.js"></script>
+
+<script id="box-template" type="text/x-handlebars-template">
+    <div class="box panel panel-default" id="box-{{macid}}">
+        <div class="box-header panel-heading">
+            <code class="box-macaddr">{{macaddr}}</code>
+            <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png"/>
+
+            <!--<span class="box-count badge">1</span>-->
+        </div>
+        <ul class="box-list list-group">
+        </ul>
+    </div>
+</script>
+
+
+<script id="host-template" type="text/x-handlebars-template">
+    <li id="host-{{macid}}-{{ipid}}" class="host list-group-item" data-ip="{{ipaddr}}">
+        <span class="host-hostname">{{ipaddr}}</span>
+        <span class="host-app"></span>
+    </li>
+</script>
+
+<script>
+    var boxtpl  = Handlebars.compile($("#box-template").html());
+    var hosttpl = Handlebars.compile($("#host-template").html());
+    var col = 0;
+
+    var socket = io.connect(window.location.href);
+    socket.on('notification', function (data) {
+        if (data.type == 'packet') {
+            data.macid = data.macaddr.replace(/:/g,'-');
+            data.ipid  = data.ipaddr.replace(/\./g,'-');
+            data.vendor = data.vendor.toLowerCase();
+            if ($('#box-' + data.macid).length < 1) {
+                $('#boxes-' + col).prepend((boxtpl(data)));
+                while ($('#boxes-' + col).children().length > 20) {
+                    $('#boxes-' + col).children().last().remove();
+                }
+                col = (col + 1) % 4;
+            }
+            if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
+                $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
+            }
+        }
+        if (data.type == 'resolve') {
+            if (data.hostname != '') {
+                $("li[data-ip='"+data.ip+"'] .host-hostname").text(data.hostname);
+            }
+            if (data.app != '') {
+                $("li[data-ip='"+data.ip+"'] .host-app").text(data.app);
+            }
+        }
+        if (data.type == 'history') {
+            // TODO   
+        }
+    });
+</script>
+</body>
+</html>
