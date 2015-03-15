@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="bootstrap.min.css">
     <style>
     body {
-        width: 95%;
+        width: 96%;
         margin: 10px;
         font-size: 10pt;
     }
@@ -38,9 +38,7 @@
     <div class="box panel panel-default" id="box-{{macid}}">
         <div class="box-header panel-heading">
             <code class="box-macaddr">{{macaddr}}</code>
-            <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png"/>
-
-            <!--<span class="box-count badge">1</span>-->
+            <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this)"/>
         </div>
         <ul class="box-list list-group">
         </ul>
@@ -56,6 +54,11 @@
 </script>
 
 <script>
+function imgerr(i) {
+    i.onerror = ""; 
+    i.src = 'vendor/unknown.png'; 
+    return true;
+}
     var boxtpl  = Handlebars.compile($("#box-template").html());
     var hosttpl = Handlebars.compile($("#host-template").html());
     var col = 0;
@@ -75,7 +78,6 @@
                 $('#box-' + data.macid + ' .box-macaddr').css('background-color','#f9f2f4').animate({
                     backgroundColor: "#464545"
                 }, 10000 );
-                console.log($('#box-' + data.macid))
                 col = (col + 1) % 4;
             }
             if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
