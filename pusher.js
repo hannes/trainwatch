@@ -12,13 +12,28 @@ var file = new static.Server('./public');
 
 app.listen(8000);
 
+
+var lastmsgs = [];
+var lastmsgsn = 100;
+
+function emit(sockets, msg) {
+  while (lastmsgs.length > lastmsgsn) {
+    lastmsgs.shift();
+  }
+  sockets.forEach(function(socket){
+      socket.emit('notification', msg);
+  });
+  msg.replayed = true;
+  lastmsgs.push(msg);
+}
+
+
 // blast that stuff to web sockets
 var sockets = [];
 io.sockets.on('connection', function(socket) {
   for (msgi in lastmsgs) {
     var msg = lastmsgs[msgi];
-    msg.replayed = true;
-    socket.volatile.emit('notification', msg);
+    socket.emit('notification', msg);
   }
   sockets.push(socket);
 });
@@ -75,18 +90,6 @@ function gm(tld) {
   return '';
 }
 
-var lastmsgs = [];
-var lastmsgsn = 1000;
-
-function emit(sockets, msg) {
-  while (lastmsgs.length > lastmsgsn) {
-    lastmsgs.shift();
-  }
-  lastmsgs.push(msg);
-  sockets.forEach(function(socket){
-      socket.volatile.emit('notification', msg);
-  });
-}
 
 mvss.on('end', function() { // only start reading stdin once the mappings have been loaded
 process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
