@@ -15,7 +15,10 @@ app.listen(8000);
 // blast that stuff to web sockets
 var sockets = [];
 io.sockets.on('connection', function(socket) {
-      sockets.push(socket);
+  for (msg in lastmsgs) {
+    socket.volatile.emit('notification', msg);
+  }
+  sockets.push(socket);
 });
 
 var macvendors = {};
@@ -70,6 +73,18 @@ function gm(tld) {
   return '';
 }
 
+var lastmsgs = [];
+var lastmsgsn = 1000;
+
+function emit(sockets, msg) {
+  while (lastmsgs.length > lastmsgsn) {
+    lastmsgs.shift();
+  }
+  lastmsgs.push(msg);
+  sockets.forEach(function(socket){
+      socket.volatile.emit('notification', msg);
+  });
+}
 
 mvss.on('end', function() { // only start reading stdin once the mappings have been loaded
 process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
@@ -88,9 +103,7 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
   obs.macaddr = obs.macaddr.substring(0,5) + ':--:--:' + obs.macaddr.substring(12);
 
   if (/^(10|192\.168)\./.test(obs.ipaddr)) return; // ignore local ips
-  sockets.forEach(function(socket){
-    socket.volatile.emit('notification', obs);
-  });
+  emit(sockets, obs);
   if (!ipresolv.has(obs.ipaddr)) {
     dns.reverse(obs.ipaddr, function(err, hostnames) {
         var hostname = '';
@@ -103,9 +116,7 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
         }
         var rese = {type: 'resolve', ip: obs.ipaddr, hostname:hostname, app:app};
         ipresolv.set(obs.ipaddr, rese);
-        sockets.forEach(function(socket){
-          socket.volatile.emit('notification', rese);
-        });
+        emit(sockets, rese);
       });
   }
 }));
