@@ -11,7 +11,7 @@
         margin: 10px;
         font-size: 10pt;
     }
-    .box-vendor {
+    .box-vendor, .host-app{
         max-width: 70px;
         max-height: 20px;
     }
@@ -38,7 +38,7 @@
     <div class="box panel panel-default" id="box-{{macid}}">
         <div class="box-header panel-heading">
             <code class="box-macaddr">{{macaddr}}</code>
-            <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this)"/>
+            <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this, 'vendor/unknown.png')"/>
         </div>
         <ul class="box-list list-group">
         </ul>
@@ -49,14 +49,14 @@
 <script id="host-template" type="text/x-handlebars-template">
     <li id="host-{{macid}}-{{ipid}}" class="host list-group-item" data-ip="{{ipaddr}}">
         <span class="host-hostname">{{ipaddr}}</span>
-        <span class="host-app"></span>
+         <img class="host-app pull-right" src="apps/unknown.png" onerror="imgerr(this, 'apps/unknown.png')"/>
     </li>
 </script>
 
 <script>
-function imgerr(i) {
+function imgerr(i, rep) {
     i.onerror = ""; 
-    i.src = 'vendor/unknown.png'; 
+    i.src = rep; 
     return true;
 }
     var boxtpl  = Handlebars.compile($("#box-template").html());
@@ -86,10 +86,14 @@ function imgerr(i) {
         }
         if (data.type == 'resolve') {
             if (data.hostname != '') {
-                $("li[data-ip='"+data.ip+"'] .host-hostname").text(data.hostname);
+                var hn = data.hostname;
+                if (hn.length > 30) {
+                    hn = '...'+hn.slice(-30);
+                }
+                $("li[data-ip='"+data.ip+"'] .host-hostname").text(hn);
             }
             if (data.app != '') {
-                $("li[data-ip='"+data.ip+"'] .host-app").text(data.app);
+                $("li[data-ip='"+data.ip+"'] .host-app").attr('src','apps/'+data.app.toLowerCase() + '.png');
             }
         }
         if (data.type == 'history') {
