@@ -15,7 +15,9 @@ app.listen(8000);
 // blast that stuff to web sockets
 var sockets = [];
 io.sockets.on('connection', function(socket) {
-  for (msg in lastmsgs) {
+  for (msgi in lastmsgs) {
+    var msg = lastmsgs[msgi];
+    msg.replayed = true;
     socket.volatile.emit('notification', msg);
   }
   sockets.push(socket);
