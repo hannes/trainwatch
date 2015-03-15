@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="bootstrap.min.css">
     <style>
     body {
-        width: 98%;
+        width: 95%;
         margin: 10px;
         font-size: 10pt;
     }
@@ -32,6 +32,7 @@
 <script src="jquery.min.js"></script>
 <script src="bootstrap.min.js"></script>
 <script src="handlebars.min.js"></script>
+<script src="jquery.color.min.js"></script>
 
 <script id="box-template" type="text/x-handlebars-template">
     <div class="box panel panel-default" id="box-{{macid}}">
@@ -70,6 +71,11 @@
                 while ($('#boxes-' + col).children().length > 20) {
                     $('#boxes-' + col).children().last().remove();
                 }
+
+                $('#box-' + data.macid + ' .box-header').css('background-color','#f9f2f4').animate({
+                    backgroundColor: "#464545"
+                }, 10000 );
+                console.log($('#box-' + data.macid))
                 col = (col + 1) % 4;
             }
             if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
