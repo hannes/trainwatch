@@ -77,7 +77,9 @@ var mappings = {
   'BullChat'    : /^(rs200435\.rs\.hosteurope\.de|rs20043\.rs\.hosteurope\.de|lvps178-77-100-159\.dedicated\.hosteurope\.de)$/,
   'NPO'         : /^.*\.omroep\.nl$/,
   'NU.nl'       : /^62-69-.*\.ptr\.as24646\.net$/,
-  'google'      : /^.*\.1e100\.net$/
+  'google'      : /^.*\.(1e100\.net|google\.com)$/,
+  'yahoo'       : /^.*\.yahoo\.com$/
+
 };
 
 function gm(tld) {
