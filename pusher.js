@@ -42,8 +42,8 @@ var mappings = {
   'Instagram'   : /^instagram\..*\.facebook\.com$|^instagram-shv.*\.fbcdn\.net$/,
   'Messenger'   : /^mqtt-shv-.*\.facebook\.com$/,
   'Facebook'    : /^.*\.(facebook\.com|fbcdn\.net)$/,
-  'Candy Crush' : /^mobilecrush\.king\.com$/,
-  'Outlook.com' : /^.*\.(hotmail.com|.*\.mail\.live\.com|a-msedge\.net)$/,
+  'CandyCrush'  : /^mobilecrush\.king\.com$/,
+  'Outlook'     : /^.*\.(hotmail.com|.*\.mail\.live\.com|a-msedge\.net)$/,
   'Marktplaats' : /^.*\.marktplaats\.(com|nl)$/,
   'Dropbox'     : /^.*\.dropbox\.com$/,
   'Netflix'     : /^.*\.nflxvideo\.net$/,
@@ -56,7 +56,8 @@ var mappings = {
   'Whatsapp'    : /^173\.192\.222\..*-static\.reverse\.softlayer\.com$/,
   'BullChat'    : /^(rs200435\.rs\.hosteurope\.de|rs20043\.rs\.hosteurope\.de|lvps178-77-100-159\.dedicated\.hosteurope\.de)$/,
   'NPO'         : /^.*\.omroep\.nl$/,
-  'NU.nl'       : /^62-69-.*\.ptr\.as24646\.net$/
+  'NU.nl'       : /^62-69-.*\.ptr\.as24646\.net$/,
+  'google'      : /^.*\.1e100\.net$/
 };
 
 function gm(tld) {
