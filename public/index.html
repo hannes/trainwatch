@@ -134,7 +134,7 @@ socket.on('notification', function (data) {
         var list = $('#box-' + data.macid + ' .history');
         data.timestamps.forEach(function(ts) {
             var tsd = new Date(ts);
-            list.append('<li>'+tsd.getFullYear()+'-'+tsd.getMonth().pad()+'-' + tsd.getDay().pad()+' '+tsd.getHours().pad() + ':' + tsd.getMinutes().pad()+'</li>');
+            list.append('<li>'+tsd.getFullYear()+'-'+tsd.getMonth().pad()+'-' + tsd.getDate().pad()+' '+tsd.getHours().pad() + ':' + tsd.getMinutes().pad()+'</li>');
         });
     }
 });
