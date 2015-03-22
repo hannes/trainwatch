@@ -6,9 +6,14 @@ var app = require('http').createServer(function (req, res) {
   es =  require('event-stream'),
   lru = require("lru-cache"), 
   dns = require('dns'), 
-  static = require('node-static');
+  static = require('node-static'), 
+  monetdb = require('monetdb');
 
 var file = new static.Server('./public');
+
+var conn = monetdb.connect({host : '10.0.0.220', dbname: 'trainwatch'} , function(err) {
+    if (err) console.log('connection failed' + err);
+});
 
 app.listen(8000);
 
@@ -92,6 +97,8 @@ function gm(tld) {
   return '';
 }
 
+var dblookup = lru({max: 1000});
+
 
 mvss.on('end', function() { // only start reading stdin once the mappings have been loaded
 process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
@@ -106,6 +113,7 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
     timestamp: new Date(Date.parse(fields[0])).toISOString()
   }
 
+  var orgmac = obs.macaddr;
 // anonymize macs
   obs.macaddr = obs.macaddr.substring(0,5) + ':--:--:' + obs.macaddr.substring(12);
 
@@ -126,5 +134,27 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
         emit(sockets, rese);
       });
   }
+
+  if (!dblookup.has(orgmac)) {
+    conn.query('select min(ts) as sd from (select ts, (ts - cast(\'Apr 24, 1984\' as timestamp))/(1000*60*5) as tsgroup from capture where mac=?) as tss group by tsgroup order by sd desc;', 
+    [orgmac], function(err, res) {
+      if (err) return;
+      if (res.rows < 1) {
+        return;
+      }
+      var hist = {
+        type: 'history',
+        macaddr: obs.macaddr,
+        timestamps: []
+      }
+      res.data.forEach(function(ts) {
+        hist.timestamps.push(new Date(Date.parse(ts)).toISOString());
+      })
+      emit(sockets, hist);
+    });
+
+    dblookup.set(orgmac, true);
+  }
+
 }));
 });

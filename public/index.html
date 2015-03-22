@@ -11,9 +11,16 @@
         margin: 10px;
         font-size: 10pt;
     }
-    .box-vendor, .host-app{
+    .box-vendor {
         max-width: 70px;
         max-height: 20px;
+    }
+
+    .host-app{
+        max-height: 18px;
+    }
+    code {
+        background-color: transparent;
     }
     </style>
 </head>
@@ -40,18 +47,33 @@
             <code class="box-macaddr">{{macaddr}}</code>
             <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this, 'vendor/unknown.png')"/>
         </div>
-        <ul class="box-list list-group">
+        <ul class="list-group info">
+            <li class="list-group-item">
+                Last signal: <span class="lastseen pull-right">asdf</span>
+            </li>
+            
+            <li class="list-group-item">
+                Visited sites: <br>
+                <ul class="list-unstyled hosts">
+                </ul>
+            </li>   
+            <li class="list-group-item history-wrapper" style="display:none">
+                Seen before: <br>
+                <ul class="history">
+                </ul>
+            </li>  
         </ul>
     </div>
 </script>
 
 
 <script id="host-template" type="text/x-handlebars-template">
-    <li id="host-{{macid}}-{{ipid}}" class="host list-group-item" data-ip="{{ipaddr}}">
+    <li id="host-{{macid}}-{{ipid}}" class="host" data-ip="{{ipaddr}}">
+         <img class="host-app" src="apps/unknown.png" onerror="imgerr(this, 'apps/unknown.png')"/>
         <span class="host-hostname">{{ipaddr}}</span>
-         <img class="host-app pull-right" src="apps/unknown.png" onerror="imgerr(this, 'apps/unknown.png')"/>
     </li>
 </script>
+
 
 <script>
 function imgerr(i, rep) {
@@ -59,47 +81,63 @@ function imgerr(i, rep) {
     i.src = rep; 
     return true;
 }
-    var boxtpl  = Handlebars.compile($("#box-template").html());
-    var hosttpl = Handlebars.compile($("#host-template").html());
-    var col = 0;
 
-    var socket = io.connect(window.location.href);
-    socket.on('notification', function (data) {
-        if (data.type == 'packet') {
-            data.macid = data.macaddr.replace(/:/g,'-');
-            data.ipid  = data.ipaddr.replace(/\./g,'-');
-            data.vendor = data.vendor.toLowerCase();
-            if ($('#box-' + data.macid).length < 1) {
-                $('#boxes-' + col).prepend((boxtpl(data)));
-                while ($('#boxes-' + col).children().length > 20) {
-                    $('#boxes-' + col).children().last().remove();
-                }
+Number.prototype.pad = function(size) {
+    var s = String(this);
+    while (s.length < (size || 2)) {s = "0" + s;}
+    return s;
+}
 
-                $('#box-' + data.macid + ' .box-macaddr').css('background-color','#f9f2f4').animate({
-                    backgroundColor: "#464545"
-                }, 10000 );
-                col = (col + 1) % 4;
+var boxtpl  = Handlebars.compile($("#box-template").html());
+var hosttpl = Handlebars.compile($("#host-template").html());
+var col = 0;
+
+var socket = io.connect(window.location.href);
+socket.on('notification', function (data) {
+    if (data.type == 'packet') {
+        data.macid = data.macaddr.replace(/:/g,'-');
+        data.ipid  = data.ipaddr.replace(/\./g,'-');
+        data.vendor = data.vendor.toLowerCase();
+        if ($('#box-' + data.macid).length < 1) {
+            $('#boxes-' + col).prepend((boxtpl(data)));
+            while ($('#boxes-' + col).children().length > 20) {
+                $('#boxes-' + col).children().last().remove();
             }
-            if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
-                $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
-            }
+            $('#box-' + data.macid + ' .box-macaddr').css('color','#c7254e').animate({
+                color: "#FFFFFF"
+            }, 30000 );
+
+           
+            col = (col + 1) % 4;
         }
-        if (data.type == 'resolve') {
-            if (data.hostname != '') {
-                var hn = data.hostname;
-                if (hn.length > 30) {
-                    hn = '...'+hn.slice(-30);
-                }
-                $("li[data-ip='"+data.ip+"'] .host-hostname").text(hn);
-            }
-            if (data.app != '') {
-                $("li[data-ip='"+data.ip+"'] .host-app").attr('src','apps/'+data.app.toLowerCase() + '.png');
-            }
+        if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
+            $('#box-' + data.macid + ' ul.hosts').prepend(hosttpl(data));
         }
-        if (data.type == 'history') {
-            // TODO   
+         var tsd = new Date(data.timestamp);
+        $('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad() + ':' + tsd.getSeconds().pad());
+    }
+    if (data.type == 'resolve') {
+        if (data.hostname != '') {
+            var hn = data.hostname;
+            if (hn.length > 30) {
+                hn = '...'+hn.slice(-30);
+            }
+            $("li[data-ip='"+data.ip+"'] .host-hostname").text(hn);
         }
-    });
+        if (data.app != '') {
+            $("li[data-ip='"+data.ip+"'] .host-app").attr('src','apps/'+data.app.toLowerCase() + '.png');
+        }
+    }
+    if (data.type == 'history') {
+        data.macid = data.macaddr.replace(/:/g,'-');
+        $('#box-' + data.macid + ' .history-wrapper').show();
+        var list = $('#box-' + data.macid + ' .history');
+        data.timestamps.forEach(function(ts) {
+            var tsd = new Date(ts);
+            list.append('<li>'+tsd.getFullYear()+'-'+tsd.getMonth().pad()+'-' + tsd.getDay().pad()+' '+tsd.getHours().pad() + ':' + tsd.getMinutes().pad()+'</li>');
+        });
+    }
+});
 </script>
 </body>
 </html>
