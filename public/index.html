@@ -11,14 +11,19 @@
         margin: 10px;
         font-size: 10pt;
     }
-    .box-vendor {
+    .box-vendor, .host-app {
         max-width: 70px;
         max-height: 20px;
     }
 
-    .host-app{
-        max-height: 18px;
+    .hist, .host{
+        border-top: none;
     }
+
+    .lastseen-box {
+        border-bottom:;
+    }
+
     code {
         background-color: transparent;
     }
@@ -40,6 +45,8 @@
 <script src="bootstrap.min.js"></script>
 <script src="handlebars.min.js"></script>
 <script src="jquery.color.min.js"></script>
+<script src="jquery.timeago.js"></script>
+
 
 <script id="box-template" type="text/x-handlebars-template">
     <div class="box panel panel-default" id="box-{{macid}}">
@@ -47,30 +54,27 @@
             <code class="box-macaddr">{{macaddr}}</code>
             <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this, 'vendor/unknown.png')"/>
         </div>
-        <ul class="list-group info">
-            <li class="list-group-item">
-                Last signal: <span class="lastseen pull-right">asdf</span>
+        <ul class="list-group">
+            <li class="list-group-item lastseen-box">
+                Last signals: <span class="lastseen pull-right">asdf</span>
             </li>
-            
-            <li class="list-group-item">
-                Visited sites: <br>
-                <ul class="list-unstyled hosts">
-                </ul>
-            </li>   
-            <li class="list-group-item history-wrapper" style="display:none">
-                Seen before: <br>
-                <ul class="history">
-                </ul>
-            </li>  
         </ul>
     </div>
 </script>
 
 
 <script id="host-template" type="text/x-handlebars-template">
-    <li id="host-{{macid}}-{{ipid}}" class="host" data-ip="{{ipaddr}}">
-         <img class="host-app" src="apps/unknown.png" onerror="imgerr(this, 'apps/unknown.png')"/>
+    <li id="host-{{macid}}-{{ipid}}" class="host list-group-item" data-ip="{{ipaddr}}">
+         <img class="host-app pull-right" src="apps/unknown.png" onerror="imgerr(this, 'apps/unknown.png')"/>
         <span class="host-hostname">{{ipaddr}}</span>
+    </li>
+</script>
+
+
+<script id="hist-template" type="text/x-handlebars-template">
+    <li class="hist list-group-item">
+        <span class="hist-date">{{dname}}, {{year}}-{{month}}-{{day}}</span>
+        <span class="hist-time pull-right">{{hour}}:{{min}}</span>
     </li>
 </script>
 
@@ -90,7 +94,11 @@ Number.prototype.pad = function(size) {
 
 var boxtpl  = Handlebars.compile($("#box-template").html());
 var hosttpl = Handlebars.compile($("#host-template").html());
+var histtpl = Handlebars.compile($("#hist-template").html());
+
 var col = 0;
+
+var daynames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 var socket = io.connect(window.location.href);
 socket.on('notification', function (data) {
@@ -111,7 +119,7 @@ socket.on('notification', function (data) {
             col = (col + 1) % 4;
         }
         if ($('#host-' + data.macid + '-' + data.ipid).length < 1) {  
-            $('#box-' + data.macid + ' ul.hosts').prepend(hosttpl(data));
+            $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
         }
          var tsd = new Date(data.timestamp);
         $('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad() + ':' + tsd.getSeconds().pad());
@@ -130,11 +138,11 @@ socket.on('notification', function (data) {
     }
     if (data.type == 'history') {
         data.macid = data.macaddr.replace(/:/g,'-');
-        $('#box-' + data.macid + ' .history-wrapper').show();
-        var list = $('#box-' + data.macid + ' .history');
+        var list = $('#box-' + data.macid + ' ul');
         data.timestamps.forEach(function(ts) {
             var tsd = new Date(ts);
-            list.append('<li>'+tsd.getFullYear()+'-'+tsd.getMonth().pad()+'-' + tsd.getDate().pad()+' '+tsd.getHours().pad() + ':' + tsd.getMinutes().pad()+'</li>');
+            var tdd = {year: tsd.getFullYear(), month: tsd.getMonth().pad(), day: tsd.getDate().pad(), hour: tsd.getHours().pad(), min:tsd.getMinutes().pad(), dname: daynames[tsd.getDay()]};
+            list.append(histtpl(tdd));
         });
     }
 });
