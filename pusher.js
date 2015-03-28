@@ -136,9 +136,13 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
   }
 
   if (!dblookup.has(orgmac)) {
-    conn.query('select min(ts) as sd from (select ts, (ts - cast(\'Apr 24, 1984\' as timestamp))/(1000*60*5) as tsgroup from capture where mac=?) as tss group by tsgroup order by sd desc;', 
+    // SQL heaven, get only first ts of each burst, needs dummy first ts
+    conn.query('WITH obs AS (SELECT CAST (\'1970-01-01\' AS timestamp) AS ts, 0 AS id UNION ALL SELECT ts, ROW_NUMBER() OVER () AS id FROM capture WHERE mac=? ), diffs AS (SELECT c1.ts, (c1.ts-c2.ts)/1000 AS tdiff FROM obs AS c1 JOIN obs AS c2 ON (c1.id = c2.id + 1)) SELECT ts FROM diffs WHERE tdiff > 600 ORDER BY ts DESC;', 
     [orgmac], function(err, res) {
-      if (err) return;
+      if (err) {
+        console.warn(err);
+        return;
+      }
       if (res.rows < 1) {
         return;
       }
