@@ -9,7 +9,7 @@ var app = require('http').createServer(function (req, res) {
   static = require('node-static'), 
   monetdb = require('monetdb');
 
-var file = new static.Server('./public');
+var file = new static.Server(__dirname + '/public');
 
 var conn = monetdb.connect({host : '10.0.0.220', dbname: 'trainwatch'} , function(err) {
     if (err) console.log('connection failed' + err);
@@ -19,7 +19,7 @@ app.listen(8000);
 
 
 var lastmsgs = [];
-var lastmsgsn = 100;
+var lastmsgsn = 1000;
 
 function emit(sockets, msg) {
   while (lastmsgs.length > lastmsgsn) {
@@ -45,7 +45,7 @@ io.sockets.on('connection', function(socket) {
 
 var macvendors = {};
 
-var mvss = fs.createReadStream("mvs.tsv");
+var mvss = fs.createReadStream(__dirname + "/mvs.tsv");
 mvss.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
   var fields = data.split('\t');
   if (fields.length < 2) return;
@@ -118,23 +118,34 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
   obs.macaddr = obs.macaddr.substring(0,5) + ':--:--:' + obs.macaddr.substring(12);
 
   if (/^(10|192\.168)\./.test(obs.ipaddr)) return; // ignore local ips
+  // this pushes out the activity
   emit(sockets, obs);
+
+  // do some resolver games
   if (!ipresolv.has(obs.ipaddr)) {
-    dns.reverse(obs.ipaddr, function(err, hostnames) {
-        var hostname = '';
-        var app = '';
-        if (!err && hostnames != undefined) {
-          hostname = hostnames[0];
-          app = gm(hostname);
-        } else {
-          app = gm(obs.ipaddr);
-        }
-        var rese = {type: 'resolve', ip: obs.ipaddr, hostname:hostname, app:app};
-        ipresolv.set(obs.ipaddr, rese);
-        emit(sockets, rese);
-      });
+    try { 
+      dns.reverse(obs.ipaddr, function(err, hostnames) {
+          var hostname = '';
+          var app = '';
+          if (!err && hostnames != undefined) {
+            hostname = hostnames[0];
+            app = gm(hostname);
+          } else {
+            app = gm(obs.ipaddr);
+          }
+          var rese = {type: 'resolve', ip: obs.ipaddr, hostname:hostname, app:app};
+          ipresolv.set(obs.ipaddr, rese);
+          emit(sockets, rese);
+        });
+    } catch (err) {
+      console.log("dns resolve error", err); 
+      ipresolv.set(obs.ipaddr, {type: 'resolve', ip: obs.ipaddr, hostname:'', app:''});
+    }
+  } else {
+    emit(sockets, ipresolv.get(obs.ipaddr));
   }
 
+  // check history
   if (!dblookup.has(orgmac)) {
     // SQL heaven, get only first ts of each burst, needs dummy first ts
     conn.query('WITH obs AS (SELECT CAST (\'1970-01-01\' AS timestamp) AS ts, 0 AS id UNION ALL SELECT ts, ROW_NUMBER() OVER () AS id FROM capture WHERE mac=? ), diffs AS (SELECT c1.ts, (c1.ts-c2.ts)/1000 AS tdiff FROM obs AS c1 JOIN obs AS c2 ON (c1.id = c2.id + 1)) SELECT ts FROM diffs WHERE tdiff > 600 ORDER BY ts DESC;', 
@@ -159,6 +170,5 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 
     dblookup.set(orgmac, true);
   }
-
 }));
 });
