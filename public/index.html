@@ -53,6 +53,8 @@
 <script src="bootstrap.min.js"></script>
 <script src="handlebars.min.js"></script>
 <script src="jquery.color.min.js"></script>
+<script src="stations.js"></script>
+
 
 <script id="box-template" type="text/x-handlebars-template">
     <div class="box panel panel-default" id="box-{{macid}}">
@@ -108,6 +110,13 @@ var col = 0;
 
 var daynames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+var snames = {};
+stations.stations.station.forEach(function(s) {
+    if (s.alias == 'false') {
+        snames[s.code] = s.name;
+    }
+});
+
 var socket = io.connect(window.location.href);
 socket.on('notification', function (data) {
     if (data.type == 'packet') {
@@ -156,7 +165,10 @@ socket.on('notification', function (data) {
     if (data.type == 'train') {
         var macid = data.macaddr.replace(/:/g,'-');
         $('#box-' + macid + ' .box-train').show();
-        $('#box-' + macid + ' .box-train-ref').text(data.trainref);
+        var matches = /^(.*)\s→\s(\w+)/gm.exec(data.trainref);
+        var train = matches[1] || '';
+        var stationshort = (matches[2] || '').toUpperCase();
+        $('#box-' + macid + ' .box-train-ref').text(train + ' → ' + snames[stationshort]);
     }
 });
 </script>
