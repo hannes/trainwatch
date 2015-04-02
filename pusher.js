@@ -148,7 +148,7 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 
   // check history and trains
   if (!dblookup.has(orgmac)) {
-     conn.query('SELECT ref, (SQRT(POWER(latitude-52.375816, 2)+POWER(longitude-4.918146, 2))) AS dist FROM trains WHERE NOW()-ts < 60*1000 AND ref LIKE \'IC %\' ORDER BY dist LIMIT 1;', function(err, res) {
+     conn.query('SELECT ref, label, (SQRT(POWER(latitude-52.375816, 2)+POWER(longitude-4.918146, 2))) AS dist FROM trains WHERE NOW()-ts < 60*1000  ORDER BY dist LIMIT 1', function(err, res) {
      if (err) {
         console.warn(err);
         return;
@@ -157,9 +157,10 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
         return;
       }
       var train = {
-        type: 'train',
-        macaddr: obs.macaddr,
-        trainref: res.data[0][0]
+        type    : 'train',
+        macaddr : obs.macaddr,
+        ref     : res.data[0][0],
+        label   : res.data[0][1]
       };
       emit(sockets, train);
     });
