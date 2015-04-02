@@ -31,6 +31,10 @@
     .list-group-item {
         padding: 7px 13px;
     }
+
+    .box-train {
+        padding-left: 3px;
+    }
     </style>
 </head>
 
@@ -55,6 +59,8 @@
         <div class="box-header panel-heading">
             <code class="box-macaddr">{{macaddr}}</code>
             <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this, 'vendor/unknown.png')"/>
+            <br>
+            <span class="box-train" style="display: none"><img src="ns.png" style="height: 10px"> <span class="box-train-ref">ref</span></span>
         </div>
         <ul class="list-group">
             <li class="list-group-item lastseen-box">
@@ -146,6 +152,11 @@ socket.on('notification', function (data) {
             var tdd = {year: tsd.getFullYear(), month: tsd.getMonth().pad(), day: tsd.getDate().pad(), hour: tsd.getHours().pad(), min:tsd.getMinutes().pad(), dname: daynames[tsd.getDay()]};
             list.append(histtpl(tdd));
         });
+    }
+    if (data.type == 'train') {
+        var macid = data.macaddr.replace(/:/g,'-');
+        $('#box-' + macid + ' .box-train').show();
+        $('#box-' + macid + ' .box-train-ref').text(data.trainref);
     }
 });
 </script>
