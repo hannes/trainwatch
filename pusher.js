@@ -7,7 +7,8 @@ var app = require('http').createServer(function (req, res) {
   lru = require("lru-cache"), 
   dns = require('dns'), 
   static = require('node-static'), 
-  monetdb = require('monetdb');
+  monetdb = require('monetdb'), 
+  Tail = require('tail').Tail;
 
 var file = new static.Server(__dirname + '/public');
 
@@ -101,7 +102,9 @@ var dblookup = lru({max: 1000});
 
 
 mvss.on('end', function() { // only start reading stdin once the mappings have been loaded
-process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
+
+capturetail = new Tail(__dirname + "/capture.log");
+capturetail.on("line", function(data) {
   var fields = data.split('\t');
   if (fields.length < 2) return;
 
@@ -148,7 +151,7 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 
   // check history and trains
   if (!dblookup.has(orgmac)) {
-     conn.query('SELECT ref, label, (SQRT(POWER(latitude-52.375816, 2)+POWER(longitude-4.918146, 2))) AS dist FROM trains WHERE NOW()-ts < 60*1000  ORDER BY dist LIMIT 1', function(err, res) {
+     conn.query('SELECT ref, label, (SQRT(POWER(latitude-52.375816, 2)+POWER(longitude-4.918146, 2))) AS dist FROM trains WHERE NOW()-ts < 30*1000  ORDER BY dist LIMIT 1', function(err, res) {
      if (err) {
         console.warn(err);
         return;
@@ -188,5 +191,5 @@ process.stdin.pipe(es.split('\n')).pipe(es.mapSync(function(data) {
 
     dblookup.set(orgmac, true);
   }
-}));
+});
 });
