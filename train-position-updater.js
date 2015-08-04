@@ -4,7 +4,7 @@ var xml2js  = require('xml2js');
 var monetdb = require('monetdb');
 
 var conn = monetdb.connect({dbname : 'trainwatch'} , function(err) {
-	if (!err) console.log('connected');
+	if (err) console.warn(err);
 });
 
 var bbox = [4.904793, 52.372271, 4.930092, 52.378978];
@@ -22,9 +22,14 @@ vid.on('message', function (topic, data) {
 		   		console.log(err);
 		   		return;
 		   	}
+			if (!result.ArrayOfTreinLocation.TreinLocation) {
+				console.log('skipping unreadable message');
+				return;
+			}
 	    	result.ArrayOfTreinLocation.TreinLocation.forEach(function(t) {
 	    		var treinnr = t.TreinNummer[0]._;
 	    		var tt = t.TreinMaterieelDelen[0];
+	    		var tsl = parseInt(tt.MaterieelDeelNummer[ 0 ]);
 	    		var lat = parseFloat(tt.Latitude[0]);
 	    		var lng = parseFloat(tt.Longitude[0]);
 	    		var ts = tt.GpsDatumTijd[0];
@@ -34,10 +39,11 @@ vid.on('message', function (topic, data) {
 	    		}
 	    		var dest = traindest[treinnr];
 	    		if (!dest) {
+	    			console.log('no destination for train ', treinnr);
 	    			return;
 	    		}
-				conn.query('INSERT INTO trains VALUES(now(), ?, ?, ?, ?)', 
-					[treinnr, dest, lat, lng], function(err, res) {
+				conn.query('INSERT INTO trains VALUES(now(), ?, ?, ?, ?, ?)', 
+					[treinnr, dest, lat, lng, tsl], function(err, res) {
 					console.log(treinnr, ts,  lat, lng, dest);
 					if (err) console.log(err);
 				});

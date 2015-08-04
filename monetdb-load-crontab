@@ -1,2 +1,2 @@
 @hourly mclient trainwatch ~/trainwatch/load-into-monetdb.sql 
-
+@hourly mclient trainwatch -fcsv -s "select tsnr,bssid from trainbssidmapping order by tsnr, bssid" > ~/trainwatch/public/treinstel-bssid.csv
