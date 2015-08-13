@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trainwatch</title>
     <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="icon" 
+      type="image/png" 
+      href="favicon.png">
+
+
     <style>
     body {
         width: 96%;
@@ -178,9 +183,9 @@ socket.on('notification', function (data) {
             $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
         }
          var tsd = new Date(data.timestamp);
-        //$('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad());
+        $('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad());
         
-        $('#box-' + data.macid + ' .lastseen').text(jQuery.timeago(tsd));
+      //  $('#box-' + data.macid + ' .lastseen').text(jQuery.timeago(tsd));
     }
     if (data.type == 'resolve') {
         if (data.hostname != '') {
