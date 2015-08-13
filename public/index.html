@@ -10,6 +10,7 @@
         width: 96%;
         margin: 10px;
         font-size: 10pt;
+        background-color: #111;
     }
     .box-vendor, .host-app {
         max-width: 70px;
@@ -35,6 +36,21 @@
     .box-train {
         padding-left: 3px;
     }
+
+    #radar{
+  position:relative;
+  width:321px;
+  height:321px;
+  background:#222 url(http://i.stack.imgur.com/vY6Tl.png);
+  border-radius:320px;
+}
+#rad{
+  position:absolute;
+  width:321px;
+  height:321px; background:url(http://i.stack.imgur.com/fbgUD.png);
+}
+
+
     </style>
 </head>
 
@@ -42,24 +58,27 @@
 <div id="container">
     <div class="row">
         <div class="col-md-3" id="boxes-0">
-            
-            <div class="box panel panel-default">
-                <div class="box-header panel-heading">
-                    What's this?
-                    <img class="box-vendor pull-right" alt="?" src="vendor/unknown.png"/>
+             <div id="firstcol-firstele" class="box panel panel-default">
+                <div class="box-header panel-heading" style="font-size: 12pt">
+                   Trainwatch
+                    <img class="box-vendor pull-right" alt="?" src="spinner.gif"/>
                 </div>
                 <img src="wifi-trein.jpg" alt="WiFi in de Trein" style="width: 100%;"/>
 
                   <div class="panel-body">
-                    The free WiFi in the Dutch intercity trains is insecure. I live near the tracks and simply listen. This should not be possible. 
+                    The free WiFi in the Dutch intercity trains is insecure. I live near the tracks and simply listen. This should not be possible.
                 </div>
             </div>
+         
 
 
         </div>
         <div class="col-md-3" id="boxes-1"></div>
         <div class="col-md-3" id="boxes-2"></div>
-        <div class="col-md-3" id="boxes-3"></div>
+        <div class="col-md-3" id="boxes-3">
+              
+
+        </div>
     </div>
  </div>
 
@@ -68,11 +87,13 @@
 <script src="bootstrap.min.js"></script>
 <script src="handlebars.min.js"></script>
 <script src="jquery.color.min.js"></script>
+<script src="jquery.timeago.js"></script>
 
 
 <script id="box-template" type="text/x-handlebars-template">
     <div class="box panel panel-default" id="box-{{macid}}">
         <div class="box-header panel-heading">
+
             <code class="box-macaddr">{{macaddr}}</code>
             <img class="box-vendor pull-right" alt="{{vendor}}" src="vendor/{{vendor}}.png" onerror="imgerr(this, 'vendor/unknown.png')"/>
             <br>
@@ -80,8 +101,12 @@
         </div>
         <ul class="list-group">
             <li class="list-group-item lastseen-box">
-                Last signals <span class="lastseen pull-right">asdf</span>
+                Last seen
             </li>
+            <li class="hist list-group-item">
+            <span class="hist-date">Today</span>
+            <span class="hist-time pull-right lastseen">asdf</span>
+        </li>
         </ul>
     </div>
 </script>
@@ -132,7 +157,13 @@ socket.on('notification', function (data) {
         data.ipid  = data.ipaddr.replace(/\./g,'-');
         data.vendor = data.vendor.toLowerCase();
         if ($('#box-' + data.macid).length < 1) {
-            $('#boxes-' + col).prepend((boxtpl(data)));
+            if (col == 0) {
+                //$('#boxes-' + col).prepend((boxtpl(data)));
+                $('#firstcol-firstele').after((boxtpl(data)));
+            }
+            else {
+                $('#boxes-' + col).prepend((boxtpl(data)));
+            }
             while ($('#boxes-' + col).children().length > 20) {
                 $('#boxes-' + col).children().last().remove();
             }
@@ -147,7 +178,9 @@ socket.on('notification', function (data) {
             $('#box-' + data.macid + ' ul').prepend(hosttpl(data));
         }
          var tsd = new Date(data.timestamp);
-        $('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad() + ':' + tsd.getSeconds().pad());
+        //$('#box-' + data.macid + ' .lastseen').text(tsd.getHours().pad() + ':' + tsd.getMinutes().pad());
+        
+        $('#box-' + data.macid + ' .lastseen').text(jQuery.timeago(tsd));
     }
     if (data.type == 'resolve') {
         if (data.hostname != '') {

@@ -1,4 +1,18 @@
 var app = require('http').createServer(function (req, res) {
+  console.log(req.headers['referer']);
+   try { 
+      dns.reverse(req.connection.remoteAddress, function(err, hostnames) {
+          if (!err && hostnames != undefined) {
+            console.log(hostnames)
+          } else {
+            console.log(req.connection.remoteAddress)
+          }
+        });
+    } catch (err) {
+      console.log("dns resolve error", err); 
+    }
+
+
   file.serve(req, res);
 }),
   io = require('socket.io').listen(app),
@@ -169,7 +183,7 @@ capturetail.on("line", function(data) {
     });
 
     // SQL heaven, get only first ts of each burst, needs dummy first ts
-    conn.query('WITH obs AS (SELECT CAST (\'1970-01-01\' AS timestamp) AS ts, 0 AS id UNION ALL SELECT ts, ROW_NUMBER() OVER () AS id FROM capture WHERE mac=? ), diffs AS (SELECT c1.ts, (c1.ts-c2.ts)/1000 AS tdiff FROM obs AS c1 JOIN obs AS c2 ON (c1.id = c2.id + 1)) SELECT ts FROM diffs WHERE tdiff > 600 ORDER BY ts DESC;', 
+    conn.query('WITH obs AS (SELECT CAST (\'1970-01-01\' AS timestamp) AS ts, 0 AS id UNION ALL SELECT ts, ROW_NUMBER() OVER () AS id FROM capture WHERE mac=? ), diffs AS (SELECT c1.ts, (c1.ts-c2.ts)/1000 AS tdiff FROM obs AS c1 JOIN obs AS c2 ON (c1.id = c2.id + 1)) SELECT ts FROM diffs WHERE tdiff > 600 ORDER BY ts DESC LIMIT 10;', 
     [orgmac], function(err, res) {
       if (err) {
         console.warn(err);

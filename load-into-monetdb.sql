@@ -9,6 +9,7 @@ CREATE TABLE "sys"."capture" (
 copy into capture from '/home/hannes/trainwatch/capture.log' using delimiters '\t','\n','';
 
 
+drop view trainbssidmapping;
 
 drop table raw;
 create table raw (
@@ -18,7 +19,6 @@ ts timestamp, ip1 string, mac1 string, port1 int, ip2 string, mac2 string, port2
 copy into raw from '/home/hannes/trainwatch/capture.raw' using delimiters '\t','\n','';
 
 
-drop view trainbssidmapping;
 
 create view trainbssidmapping as select tsnr, bssid, count(*) as instances from (
 	select tsnr, bssid, unpos.midts from (
